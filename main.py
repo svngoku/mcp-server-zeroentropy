@@ -1,13 +1,15 @@
 """
 ZeroEntropy MCP Server
 """
+
+from mcp.server.fastmcp import FastMCP
+from pydantic import Field
+
+import mcp.types as types
 import asyncio
 import base64
 import os
 from typing import Optional, Dict, Any
-
-from mcp.server.fastmcp import FastMCP
-from pydantic import Field
 from zeroentropy import AsyncZeroEntropy, ConflictError, HTTPStatusError
 from dotenv import load_dotenv
 
@@ -19,6 +21,7 @@ client = AsyncZeroEntropy(
 )
 
 mcp = FastMCP("ZeroEntropy Server", port=3000, stateless_http=True, debug=True)
+
 
 @mcp.tool(
     title="Search Collection",
@@ -57,6 +60,7 @@ async def search_collection(
     except Exception as e:
         return f"Error performing search: {str(e)}"
 
+
 @mcp.tool(
     title="Create Collection",
     description="Create a new collection for document storage",
@@ -70,6 +74,7 @@ async def create_collection(collection_name: str) -> str:
         return f"Collection '{collection_name}' already exists"
     except Exception as e:
         return f"Error creating collection: {str(e)}"
+
 
 @mcp.tool(
     title="Add Document",
@@ -102,6 +107,7 @@ async def add_document(
     except Exception as e:
         return f"Error adding document: {str(e)}"
 
+
 @mcp.tool(
     title="List Collections",
     description="List all available collections",
@@ -113,6 +119,7 @@ async def list_collections() -> str:
         return str(response.collection_names)
     except Exception as e:
         return f"Error listing collections: {str(e)}"
+
 
 @mcp.tool(
     title="Get Collection Status",
@@ -158,6 +165,7 @@ async def search_documents(
         return str(response.results)
     except Exception as e:
         return f"Error searching documents: {str(e)}"
+
 
 @mcp.tool(
     title="Filter Documents by Metadata",
@@ -228,6 +236,7 @@ async def filter_documents_by_metadata(
     except Exception as e:
         return f"Error filtering documents: {str(e)}"
 
+
 @mcp.tool(
     title="Advanced Metadata Filter",
     description="Apply advanced metadata filtering using custom ZeroEntropy query language",
@@ -271,8 +280,6 @@ async def advanced_metadata_filter(
         return f"Error applying advanced filter: {str(e)}"
 
 
-
-
 @mcp.resource(
     uri="search://{query}",
     description="Get search results for a query",
@@ -291,6 +298,7 @@ async def get_search_results(query: str) -> str:
     except Exception as e:
         return f"Error: {str(e)}"
 
+
 @mcp.prompt("")
 async def search_prompt(
     topic: str = Field(description="The topic to search for"),
@@ -298,6 +306,7 @@ async def search_prompt(
 ) -> str:
     """Generate a search prompt for African history"""
     return f"Search for information about {topic} in African history, focusing on {focus} aspects."
+
 
 if __name__ == "__main__":
     mcp.run(transport="streamable-http")
