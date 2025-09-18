@@ -10,7 +10,7 @@ import asyncio
 import base64
 import os
 from typing import Optional, Dict, Any
-from zeroentropy import AsyncZeroEntropy, ConflictError, HTTPStatusError
+from zeroentropy import AsyncZeroEntropy, ConflictError
 from dotenv import load_dotenv
 
 load_dotenv()
