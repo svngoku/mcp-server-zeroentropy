@@ -2,6 +2,8 @@
 
 A comprehensive Model Context Protocol (MCP) server for the ZeroEntropy SDK, enabling AI assistants to perform advanced document retrieval, search, and management operations.
 
+This server provides full access to ZeroEntropy's powerful document search and retrieval capabilities through the MCP protocol, making it easy to integrate with AI assistants like Claude Desktop.
+
 ## Features
 
 The ZeroEntropy MCP Server provides a complete set of tools for:
@@ -108,176 +110,193 @@ Add to your Claude Desktop configuration file:
 
 #### `create_collection`
 Create a new collection for document storage.
-```python
-# Parameters:
-collection_name: str  # Name of the collection to create
-```
+- **Parameters:**
+  - `collection_name`: str - Name of the collection to create
+- **Returns:** Success status message
 
 #### `list_collections`
 Get a list of all available collections.
-```python
-# Returns list of collection names
-```
+- **Returns:** List of collection names
 
 #### `delete_collection`
 Delete a collection and all its documents.
-```python
-# Parameters:
-collection_name: str  # Name of the collection to delete
-```
+- **Parameters:**
+  - `collection_name`: str - Name of the collection to delete
+- **Returns:** Success status message
+
+#### `get_collection_status`
+Get detailed status information for a collection.
+- **Parameters:**
+  - `collection_name`: str - Collection name
+- **Returns:** Document counts and indexing status
 
 ### Document Management
 
-#### `add_text_document`
-Add a text document to a collection.
-```python
-# Parameters:
-collection_name: str        # Name of the collection
-path: str                  # Unique identifier/path for the document
-text: str                  # Text content to add
-metadata: Optional[str]    # JSON string of metadata key-value pairs
-```
-
-#### `add_file_document`
-Add a file (PDF, TXT, etc.) to a collection with automatic parsing.
-```python
-# Parameters:
-collection_name: str        # Name of the collection
-file_path: str             # Path to the file to add
-metadata: Optional[str]    # JSON string of metadata key-value pairs
-```
-
-#### `add_pages_document`
-Add a document with multiple pages of text content.
-```python
-# Parameters:
-collection_name: str        # Name of the collection
-path: str                  # Unique identifier/path for the document
-pages: List[str]           # List of page contents
-metadata: Optional[str]    # JSON string of metadata key-value pairs
-```
+#### `add_document`
+Add a document to a collection with flexible content types.
+- **Parameters:**
+  - `collection_name`: str - Target collection name
+  - `path`: str - Document path/identifier
+  - `content_type`: str - Type: 'text', 'auto', or 'text-pages' (default: 'text')
+  - `content`: str - Document content or base64 data
+  - `metadata`: Optional[Dict] - Optional metadata
+- **Returns:** Success status message
 
 #### `get_document_info`
 Get information about a specific document.
-```python
-# Parameters:
-collection_name: str       # Name of the collection
-path: str                 # Document path/identifier
-include_content: bool     # Whether to include document content
-```
+- **Parameters:**
+  - `collection_name`: str - Name of the collection
+  - `path`: str - Document path/identifier
+  - `include_content`: bool - Whether to include document content (default: False)
+- **Returns:** Document details including ID, metadata, index status, and content
 
 #### `list_documents`
-List documents in a collection with pagination.
-```python
-# Parameters:
-collection_name: str           # Name of the collection
-limit: int = 100              # Maximum number to return (max 1024)
-path_gt: Optional[str] = None # Path to start from (for pagination)
-```
+List documents in a collection with pagination support.
+- **Parameters:**
+  - `collection_name`: str - Name of the collection
+  - `limit`: int - Maximum number to return (max 1024, default: 100)
+  - `path_gt`: Optional[str] - Path to start from for pagination
+- **Returns:** List of documents with metadata and pagination info
 
 #### `update_document_metadata`
 Update metadata for an existing document.
-```python
-# Parameters:
-collection_name: str  # Name of the collection
-path: str            # Document path/identifier
-metadata: str        # JSON string of metadata to update
-```
+- **Parameters:**
+  - `collection_name`: str - Name of the collection
+  - `path`: str - Document path/identifier
+  - `metadata`: Dict - New metadata to set
+- **Returns:** Update status with old and new document IDs
 
 #### `delete_document`
 Delete a document from a collection.
-```python
-# Parameters:
-collection_name: str  # Name of the collection
-path: str            # Document path/identifier to delete
-```
+- **Parameters:**
+  - `collection_name`: str - Name of the collection
+  - `path`: str - Document path/identifier to delete
+- **Returns:** Success status message
 
 ### Search Operations
 
+#### `search_collection`
+Search a collection using ZeroEntropy's powerful snippet search.
+- **Parameters:**
+  - `collection_name`: str - The name of the ZeroEntropy collection
+  - `query`: str - The search query
+  - `k`: int - Number of results (default: 21, max: 128)
+  - `reranker`: str - Reranker model (default: 'zerank-1')
+  - `filter`: Optional[Dict] - Metadata filter query
+- **Returns:** Top snippets with scores and metadata
+
 #### `search_documents`
 Search for the most relevant documents in a collection.
-```python
-# Parameters:
-collection_name: str           # Collection to search
-query: str                    # Search query
-k: int = 5                   # Number of results (max 2048)
-include_metadata: bool = False # Include document metadata
-latency_mode: str = "low"     # "low", "medium", or "high"
-filter_json: Optional[str]    # JSON filter for metadata
-reranker: Optional[str]       # Reranker model (e.g., "zerank-1-small")
-```
+- **Parameters:**
+  - `collection_name`: str - Collection to search
+  - `query`: str - Search query
+  - `k`: int - Number of results (default: 5, max: 2048)
+  - `include_metadata`: bool - Include document metadata (default: True)
+  - `filter`: Optional[Dict] - Metadata filter query
+- **Returns:** Ranked documents with relevance scores
 
 #### `search_pages`
 Search for the most relevant pages across documents.
-```python
-# Parameters:
-collection_name: str           # Collection to search
-query: str                    # Search query
-k: int = 5                   # Number of results (max 1024)
-include_content: bool = False # Include page content
-latency_mode: str = "low"     # "low", "medium", or "high"
-filter_json: Optional[str]    # JSON filter for metadata
-```
+- **Parameters:**
+  - `collection_name`: str - Collection to search
+  - `query`: str - Search query
+  - `k`: int - Number of results (default: 5, max: 1024)
+  - `include_content`: bool - Include page content (default: True)
+  - `latency_mode`: str - "low", "medium", or "high" (default: "low")
+  - `filter`: Optional[Dict] - Metadata filter
+- **Returns:** Relevant pages with scores and content
 
-#### `search_snippets`
-Search for the most relevant text snippets within documents.
-```python
-# Parameters:
-collection_name: str                    # Collection to search
-query: str                             # Search query
-k: int = 5                            # Number of results (max 128)
-precise_responses: bool = False        # Use precise mode
-include_document_metadata: bool = False # Include document metadata
-filter_json: Optional[str]             # JSON filter for metadata
-reranker: Optional[str]                # Reranker model
-```
+#### `filter_documents_by_metadata`
+Filter documents based on metadata criteria using ZeroEntropy query language.
+- **Parameters:**
+  - `collection_name`: str - Collection to search
+  - `query`: str - Search query
+  - `author`: Optional[str] - Filter by author
+  - `language`: Optional[str] - Filter by language
+  - `tags`: Optional[List[str]] - Filter by tags
+  - `timestamp_after`: Optional[str] - Filter by timestamp after (ISO format)
+  - `timestamp_before`: Optional[str] - Filter by timestamp before (ISO format)
+  - `k`: int - Number of results (default: 5)
+- **Returns:** Filtered search results with automatic query construction
 
-#### `semantic_search_with_context`
-Perform a comprehensive semantic search with context.
-```python
-# Parameters:
-collection_name: str         # Collection to search
-query: str                  # Search query
-context_size: int = 3       # Results per search type
-include_snippets: bool = True # Include snippet results
-include_pages: bool = False  # Include page results
-```
+#### `advanced_metadata_filter`
+Apply advanced metadata filtering using custom ZeroEntropy query language.
+- **Parameters:**
+  - `collection_name`: str - Collection to search
+  - `query`: str - Search query
+  - `filter_query`: Dict - Custom metadata filter using ZeroEntropy query language
+  - `k`: int - Number of results (default: 5)
+  - `search_type`: str - "snippets", "documents", or "pages" (default: "snippets")
+- **Returns:** Advanced filtered results
+- **Example filters:**
+  - `{"language": {"$eq": "en"}}`
+  - `{"timestamp": {"$gt": "2024-01-01T00:00:00"}}`
+  - `{"list:tags": {"$in": ["tech", "ai"]}}`
+  - `{"$and": [{"author": {"$eq": "John"}}, {"language": {"$eq": "en"}}]}`
 
 ### Utilities
 
-#### `get_status`
+#### `get_status` / `get_collection_status`
 Get the status of the ZeroEntropy system or a specific collection.
-```python
-# Parameters:
-collection_name: Optional[str] = None  # Optional collection name
-```
+- **Parameters:**
+  - `collection_name`: Optional[str] - Optional collection name for specific status
+- **Returns:** Document counts, indexing status, parsing status, and failed documents
 
 #### `parse_document`
 Parse a document (PDF, etc.) without indexing it.
-```python
-# Parameters:
-base64_data: str  # Base64-encoded document data
-```
+- **Parameters:**
+  - `base64_data`: str - Base64-encoded document data
+- **Returns:** Extracted page contents and page count
 
 #### `rerank_documents`
 Rerank a list of documents based on relevance to a query.
-```python
-# Parameters:
-query: str                   # Query to rank against
-documents: List[str]         # List of document texts
-model: str = "zerank-1-small" # Reranking model
-top_n: Optional[int] = None  # Number of top results
-```
+- **Parameters:**
+  - `query`: str - Query to rank against
+  - `documents`: List[str] - List of document texts
+  - `model`: str - Reranking model (default: "zerank-1-small")
+  - `top_n`: Optional[int] - Number of top results
+- **Returns:** Reranked documents with relevance scores
 
-#### `batch_add_csv_rows`
-Add CSV rows as individual documents to a collection.
-```python
-# Parameters:
-collection_name: str                 # Name of the collection
-csv_file_path: str                  # Path to the CSV file
-text_column: str                    # Column containing main text
-metadata_columns: Optional[List[str]] # Columns to include as metadata
-```
+### Resources
+
+#### `search://{query}`
+Get search results for a specific query.
+- **URI Pattern:** `search://your-search-query`
+- **Returns:** Search results from the default collection
+
+#### `collection://{collection_name}/status`
+Get status information for a specific collection.
+- **URI Pattern:** `collection://my-collection/status`
+- **Returns:** Collection status including document counts
+
+#### `collections://list`
+List all available collections.
+- **URI Pattern:** `collections://list`
+- **Returns:** List of all collection names with count
+
+### Prompts
+
+#### `search_prompt`
+Generate a search prompt for exploring a topic.
+- **Parameters:**
+  - `topic`: str - The topic to search for
+  - `focus`: str - Specific focus area (default: "general")
+- **Returns:** Formatted search prompt
+
+#### `filter_search_prompt`
+Generate a filtered search prompt with metadata constraints.
+- **Parameters:**
+  - `query`: str - The search query
+  - `author`: Optional[str] - Filter by author
+  - `language`: Optional[str] - Filter by language
+  - `date_range`: Optional[str] - Date range for filtering
+- **Returns:** Formatted filtered search prompt
+
+#### `analyze_collection_prompt`
+Generate a prompt for analyzing a collection's contents.
+- **Parameters:**
+  - `collection_name`: str - Name of the collection to analyze
+- **Returns:** Comprehensive analysis prompt
 
 ## Example Use Cases
 
